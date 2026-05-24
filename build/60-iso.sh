@@ -121,7 +121,19 @@ set prefix=($root)/boot/grub
 configfile $prefix/grub.cfg
 EOF
 
-GRUB_MODULES="part_gpt part_msdos fat iso9660 normal configfile search search_label search_fs_uuid search_fs_file linux linuxefi echo all_video gfxterm gfxterm_background gfxmenu boot loadenv test true help serial terminal sleep halt reboot ls cat password password_pbkdf2 ext2 udf squash4 png jpeg gzio xzio lzopio video_bochs video_cirrus efi_gop efi_uga chain"
+# Filter the desired GRUB modules to those actually present on the build host
+# (linuxefi.mod doesn't exist on Fedora/AL because they unified linux+linuxefi).
+GRUB_DIR=""
+for cand in /usr/lib/grub/x86_64-efi /usr/lib/grub2/x86_64-efi /usr/share/grub2/x86_64-efi; do
+  [ -d "$cand" ] && GRUB_DIR="$cand" && break
+done
+[ -n "$GRUB_DIR" ] || die "Cannot find GRUB x86_64-efi modules dir"
+
+GRUB_MODULES_DESIRED="part_gpt part_msdos fat iso9660 normal configfile search search_label search_fs_uuid search_fs_file linux linuxefi echo all_video gfxterm gfxterm_background gfxmenu boot loadenv test true help serial terminal sleep halt reboot ls cat password password_pbkdf2 ext2 udf squash4 png jpeg gzio xzio lzopio video_bochs video_cirrus efi_gop efi_uga chain"
+GRUB_MODULES=""
+for m in $GRUB_MODULES_DESIRED; do
+  [ -f "$GRUB_DIR/$m.mod" ] && GRUB_MODULES="$GRUB_MODULES $m"
+done
 
 log "Building x86_64-efi GRUB image (BOOTX64.EFI)"
 grub2-mkstandalone \
