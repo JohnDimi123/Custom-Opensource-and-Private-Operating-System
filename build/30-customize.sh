@@ -152,7 +152,9 @@ VERSION_CODENAME=lumen
 HOME_URL="https://github.com/JohnDimi123/Custom-Opensource-and-Private-Operating-System"
 SUPPORT_URL="https://github.com/JohnDimi123/Custom-Opensource-and-Private-Operating-System/issues"
 EOF
-ln -sf /etc/os-release /usr/lib/os-release
+# /usr/lib/os-release is already a symlink to /etc/os-release in Debian 12 base,
+# so make sure the link exists but tolerate the "are the same file" case.
+[ -L /usr/lib/os-release ] || ln -sf /etc/os-release /usr/lib/os-release || true
 
 # Banner shown on TTY login
 cat > /etc/issue <<EOF
