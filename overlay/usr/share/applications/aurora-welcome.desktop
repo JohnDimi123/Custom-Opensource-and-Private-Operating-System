@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Welcome
+Comment=Welcome to AuroraOS
+Exec=aurora-welcome
+Icon=aurora-logo
+Terminal=false
+Categories=System;
+NoDisplay=false
+StartupNotify=true

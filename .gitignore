@@ -1,0 +1,8 @@
+work/
+out/
+*.iso
+*.iso.sha256
+*.log
+__pycache__/
+*.pyc
+.DS_Store

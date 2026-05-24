@@ -1,0 +1,142 @@
+#!/bin/bash
+# Stage 60: assemble the bootable hybrid UEFI ISO.
+set -euo pipefail
+. "$(dirname "$0")/00-config.sh"
+
+[ -f "$ISO_STAGE_DIR/live/filesystem.squashfs" ] || die "squashfs not built"
+
+# --- GRUB config that runs on the ISO ---------------------------------------
+# Note: live-boot kernel cmdline:
+#   boot=live   -> tells initramfs to mount squashfs as the rootfs
+#   components  -> activates live-config (autologin via lightdm conf, etc.)
+#   quiet splash plymouth.ignore-serial-consoles -> clean Plymouth boot
+#   noprompt    -> don't pause before unmounting media on shutdown
+cat > "$ISO_STAGE_DIR/boot/grub/grub.cfg" <<EOF
+set default=0
+set timeout=5
+
+# Try graphical menu first; fall back gracefully if FB unavailable
+if loadfont /boot/grub/fonts/unicode.pf2 ; then
+  insmod all_video
+  insmod gfxterm
+  set gfxmode=auto
+  terminal_output gfxterm
+fi
+
+set color_normal=white/black
+set color_highlight=black/light-cyan
+set menu_color_normal=white/black
+set menu_color_highlight=black/light-cyan
+
+menuentry "AuroraOS  -  Live Session" {
+    linux  /live/vmlinuz boot=live components quiet splash plymouth.ignore-serial-consoles
+    initrd /live/initrd.img
+}
+
+menuentry "AuroraOS  -  Live Session  (safe graphics)" {
+    linux  /live/vmlinuz boot=live components nomodeset vga=normal
+    initrd /live/initrd.img
+}
+
+menuentry "Install AuroraOS to disk" {
+    linux  /live/vmlinuz boot=live components quiet splash aurora.installer=true
+    initrd /live/initrd.img
+}
+
+menuentry "AuroraOS  -  Verbose boot (debug)" {
+    linux  /live/vmlinuz boot=live components debug
+    initrd /live/initrd.img
+}
+
+menuentry "Reboot"   { reboot }
+menuentry "Shutdown" { halt }
+EOF
+
+# --- Build standalone UEFI loader -------------------------------------------
+# The grub-embed.cfg only finds the real grub.cfg on the iso9660 filesystem.
+cat > "$WORK_DIR/grub-embed.cfg" <<'EOF'
+search --no-floppy --set=root --file /.disk/info
+set prefix=($root)/boot/grub
+configfile $prefix/grub.cfg
+EOF
+
+GRUB_MODULES="part_gpt part_msdos fat iso9660 normal configfile search search_label search_fs_uuid search_fs_file linux echo all_video gfxterm gfxterm_background gfxmenu boot loadenv test true help serial terminal sleep halt reboot ls cat password password_pbkdf2 ext2 udf squash4 png jpeg gzio xzio lzopio video_bochs video_cirrus efi_gop efi_uga"
+
+log "Building x86_64-efi GRUB image (BOOTX64.EFI)"
+grub2-mkstandalone \
+  --format=x86_64-efi \
+  --output="$ISO_STAGE_DIR/EFI/BOOT/BOOTX64.EFI" \
+  --modules="$GRUB_MODULES" \
+  --locales="" --themes="" \
+  --fonts="unicode" \
+  "boot/grub/grub.cfg=$WORK_DIR/grub-embed.cfg" 2>&1 | tail -3
+
+# Stage GRUB unicode font for gfxterm
+mkdir -p "$ISO_STAGE_DIR/boot/grub/fonts"
+if [ -f /usr/share/grub/unicode.pf2 ]; then
+  cp /usr/share/grub/unicode.pf2 "$ISO_STAGE_DIR/boot/grub/fonts/unicode.pf2"
+fi
+
+# --- Build BIOS (i386-pc) loader for legacy fallback ------------------------
+log "Building i386-pc GRUB image (eltorito.img) for legacy BIOS fallback"
+grub2-mkstandalone \
+  --format=i386-pc \
+  --output="$WORK_DIR/core.img" \
+  --install-modules="linux normal iso9660 biosdisk memdisk search tar ls" \
+  --modules="linux normal iso9660 biosdisk search" \
+  --locales="" --themes="" --fonts="" \
+  "boot/grub/grub.cfg=$WORK_DIR/grub-embed.cfg" 2>&1 | tail -3 || warn "BIOS image build skipped"
+
+if [ -f "$WORK_DIR/core.img" ] && [ -f /usr/lib/grub/i386-pc/cdboot.img ]; then
+  cat /usr/lib/grub/i386-pc/cdboot.img "$WORK_DIR/core.img" > "$ISO_STAGE_DIR/boot/grub/eltorito.img"
+fi
+
+# --- Build the EFI System Partition image (FAT) -----------------------------
+ESP_SIZE_KB=$(( $(du -sk "$ISO_STAGE_DIR/EFI/BOOT/BOOTX64.EFI" | cut -f1) + 2048 ))
+ESP_SIZE_KB=$(( ((ESP_SIZE_KB + 1023) / 1024) * 1024 ))   # round up to MB
+log "Creating EFI System Partition image (${ESP_SIZE_KB}K)"
+dd if=/dev/zero of="$WORK_DIR/efi.img" bs=1K count=$ESP_SIZE_KB status=none
+mkfs.vfat -n EFIESP "$WORK_DIR/efi.img" >/dev/null
+mmd -i "$WORK_DIR/efi.img" ::/EFI ::/EFI/BOOT
+mcopy -i "$WORK_DIR/efi.img" "$ISO_STAGE_DIR/EFI/BOOT/BOOTX64.EFI" ::/EFI/BOOT/BOOTX64.EFI
+cp "$WORK_DIR/efi.img" "$ISO_STAGE_DIR/boot/grub/efi.img"
+
+# --- Assemble hybrid ISO ----------------------------------------------------
+log "Building hybrid UEFI ISO -> $ISO_OUTPUT"
+XORRISO_ARGS=(
+  -as mkisofs
+  -iso-level 3 -full-iso9660-filenames
+  -volid "AURORA_${AURORA_VERSION//./_}"
+  -appid  "${AURORA_NAME} ${AURORA_VERSION} live"
+  -publisher "AuroraOS Project"
+  -preparer  "AuroraOS build pipeline"
+  # UEFI El Torito boot: points to the FAT image we built
+  -eltorito-alt-boot
+    -e boot/grub/efi.img -no-emul-boot
+    -isohybrid-gpt-basdat
+)
+# Optional BIOS El Torito (legacy hosts only; Hyper-V Gen 2 uses UEFI)
+if [ -f "$ISO_STAGE_DIR/boot/grub/eltorito.img" ]; then
+  XORRISO_ARGS=(
+    -as mkisofs
+    -iso-level 3 -full-iso9660-filenames
+    -volid "AURORA_${AURORA_VERSION//./_}"
+    -appid  "${AURORA_NAME} ${AURORA_VERSION} live"
+    -publisher "AuroraOS Project"
+    -preparer  "AuroraOS build pipeline"
+    -b boot/grub/eltorito.img -no-emul-boot
+      -boot-load-size 4 -boot-info-table
+    -eltorito-alt-boot
+      -e boot/grub/efi.img -no-emul-boot
+      -isohybrid-gpt-basdat
+  )
+fi
+
+xorriso "${XORRISO_ARGS[@]}" -o "$ISO_OUTPUT" "$ISO_STAGE_DIR" 2>&1 | tail -10
+
+ISO_SIZE=$(du -h "$ISO_OUTPUT" | cut -f1)
+log "ISO ready: $ISO_OUTPUT  ($ISO_SIZE)"
+
+# Checksums
+sha256sum "$ISO_OUTPUT" > "${ISO_OUTPUT}.sha256"
+log "SHA256: $(cat "${ISO_OUTPUT}.sha256")"

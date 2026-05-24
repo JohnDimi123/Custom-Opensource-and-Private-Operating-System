@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Start
+GenericName=Start Menu
+Comment=Open the AuroraOS start menu
+Exec=jgmenu_run
+Icon=aurora-start
+Terminal=false
+Categories=System;
+Keywords=menu;start;launcher;
+NoDisplay=false

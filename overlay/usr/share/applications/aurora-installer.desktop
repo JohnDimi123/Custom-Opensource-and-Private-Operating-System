@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Install AuroraOS
+GenericName=Install
+Comment=Install AuroraOS to disk
+Exec=sudo -E calamares
+Icon=system-software-install
+Terminal=false
+Categories=System;
+OnlyShowIn=Openbox;

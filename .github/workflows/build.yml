@@ -1,0 +1,59 @@
+name: Build AuroraOS ISO
+
+on:
+  push:
+    branches: [main, "feat/**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            xorriso squashfs-tools grub-efi-amd64-bin grub-pc-bin \
+            grub-common dosfstools mtools rsync wget ca-certificates \
+            qemu-system-x86 ovmf debootstrap python3 python3-pil
+
+      - name: Adjust toolchain paths for Ubuntu
+        run: |
+          # On Ubuntu, GRUB tools are grub-mkstandalone (not grub2-mkstandalone)
+          if ! command -v grub2-mkstandalone >/dev/null; then
+            sudo ln -sf "$(command -v grub-mkstandalone)" /usr/local/bin/grub2-mkstandalone
+          fi
+          # OVMF location differs on Ubuntu
+          echo "OVMF_CODE=/usr/share/OVMF/OVMF_CODE.fd"             >> $GITHUB_ENV
+          echo "OVMF_VARS_TEMPLATE=/usr/share/OVMF/OVMF_VARS.fd"    >> $GITHUB_ENV
+          echo "QEMU_BIN=/usr/bin/qemu-system-x86_64"               >> $GITHUB_ENV
+
+      - name: Build the ISO
+        run: sudo -E SKIP_TEST=1 make iso
+
+      - name: Run automated boot test
+        run: sudo -E build/90-test.sh
+        continue-on-error: true
+
+      - name: Upload ISO artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AuroraOS-iso
+          path: |
+            out/AuroraOS-*.iso
+            out/AuroraOS-*.iso.sha256
+            work/test/serial.log
+          retention-days: 14
+
+      - name: Attach ISO to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            out/AuroraOS-*.iso
+            out/AuroraOS-*.iso.sha256

@@ -1,0 +1,43 @@
+#!/bin/sh
+# AuroraOS Openbox autostart - launches the Win11-style desktop.
+
+# Wait briefly for X to settle (helps in slow VMs)
+sleep 0.4
+
+# Wallpaper
+feh --bg-fill /usr/share/backgrounds/aurora/aurora-default.png &
+
+# Compositor: rounded corners, transparency, blur, fade animations
+picom --config "$HOME/.config/picom.conf" -b &
+
+# Notification daemon
+dunst &
+
+# Centered taskbar
+tint2 -c "$HOME/.config/tint2/aurora.tint2rc" &
+
+# Polkit auth agent (so Calamares / mount popups work in the live session)
+( /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1 \
+    || /usr/libexec/polkit-mate-authentication-agent-1 \
+    || /usr/lib/polkit-1/polkitd ) 2>/dev/null &
+
+# NetworkManager applet
+nm-applet --indicator &
+
+# PipeWire / Pulse should already be running from systemd-user; volume tray:
+pasystray 2>/dev/null &
+
+# Desktop icons via PCManFM
+pcmanfm --desktop --profile=aurora &
+
+# First-run welcome (only first time)
+if [ ! -f "$HOME/.config/aurora/welcome-shown" ]; then
+  ( sleep 2; aurora-welcome ) &
+fi
+
+# Power management (lid/idle/screen blanking is fine for VMs)
+xset s 600 600
+xset dpms 0 0 1200
+
+# XDG dirs
+xdg-user-dirs-update &

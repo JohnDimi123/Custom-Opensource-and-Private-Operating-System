@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Start button glyph: 4 panes arranged in a 2x2, suggesting the Aurora logo
+     in a smaller, single-color form for taskbar use. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <g fill="#ececec">
+    <rect x="3"  y="3"  width="8" height="8" rx="1.5"/>
+    <rect x="13" y="3"  width="8" height="8" rx="1.5"/>
+    <rect x="3"  y="13" width="8" height="8" rx="1.5"/>
+    <rect x="13" y="13" width="8" height="8" rx="1.5"/>
+  </g>
+</svg>
