@@ -63,6 +63,7 @@ startup_notifications = 1
 launcher_tooltip = 1
 launcher_item_app = aurora-startmenu.desktop
 launcher_item_app = pcmanfm.desktop
+launcher_item_app = chromium.desktop
 launcher_item_app = xfce4-terminal.desktop
 launcher_item_app = aurora-settings.desktop
 

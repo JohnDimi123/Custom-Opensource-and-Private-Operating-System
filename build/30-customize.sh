@@ -79,12 +79,39 @@ if [ -d /etc/skel ]; then
   chown -R aurora:aurora /home/aurora
 fi
 
+# --- CRITICAL: Openbox autostart must be executable -------------------------
+# This launches the entire desktop (wallpaper, taskbar, compositor, notif, etc).
+# Was the root cause of "no background, no menu" in v1.0.x.
+for f in /etc/skel/.config/openbox/autostart \
+         /home/aurora/.config/openbox/autostart ; do
+  [ -f "$f" ] && chmod 755 "$f"
+done
+# Belt-and-braces: also fix at first boot via tmpfiles
+mkdir -p /etc/tmpfiles.d
+cat > /etc/tmpfiles.d/aurora-autostart.conf <<EOF
+# Re-fix the autostart bit at boot in case overlayfs strips it
+z /etc/skel/.config/openbox/autostart 0755 root root -
+z /home/aurora/.config/openbox/autostart 0755 aurora aurora -
+EOF
+
 # --- LightDM autologin --------------------------------------------------------
 mkdir -p /etc/lightdm/lightdm.conf.d
+# Both lightdm.conf and a drop-in: live-config sometimes regenerates lightdm.conf,
+# so put the autologin line in BOTH places.
+cat > /etc/lightdm/lightdm.conf <<EOF
+[Seat:*]
+autologin-user=aurora
+autologin-user-timeout=0
+autologin-session=openbox
+user-session=openbox
+greeter-session=lightdm-gtk-greeter
+allow-guest=false
+EOF
 cat > /etc/lightdm/lightdm.conf.d/50-aurora.conf <<EOF
 [Seat:*]
 autologin-user=aurora
 autologin-user-timeout=0
+autologin-session=openbox
 user-session=openbox
 greeter-session=lightdm-gtk-greeter
 EOF
@@ -97,6 +124,104 @@ icon-theme-name=Aurora
 font-name=Inter 11
 background=/usr/share/backgrounds/aurora/aurora-default.png
 EOF
+
+# --- Hyper-V Enhanced Session Mode (ESM) -------------------------------------
+# Configure xrdp to listen on hv_sock (vsock-stream:1) so Windows VMConnect can
+# negotiate ESM and offer dynamic resolution, clipboard, and file sharing.
+if command -v xrdp >/dev/null 2>&1; then
+  cat > /etc/xrdp/xrdp.ini <<EOF
+[Globals]
+ini_version=1
+fork=true
+port=vsock://-1:3389
+use_vsock=true
+tcp_nodelay=true
+tcp_keepalive=true
+security_layer=negotiate
+crypt_level=high
+allow_channels=true
+allow_multimon=true
+bitmap_cache=true
+bitmap_compression=true
+new_cursors=true
+xserverbpp=24
+hidelogwindow=true
+ls_top_window_bg_color=1c1c22
+ls_width=600
+ls_height=350
+max_bpp=32
+
+[Logging]
+LogFile=/var/log/xrdp.log
+LogLevel=INFO
+EnableSyslog=true
+SyslogLevel=INFO
+
+[Channels]
+rdpdr=true
+rdpsnd=true
+drdynvc=true
+cliprdr=true
+rail=true
+xrdpvr=true
+tcutils=true
+
+[Xorg]
+name=Xorg
+lib=libxup.so
+username=ask
+password=ask
+ip=127.0.0.1
+port=-1
+code=20
+EOF
+
+  # xrdp's session script: launch our Openbox session for ESM connections
+  cat > /etc/xrdp/startwm.sh <<'EOF'
+#!/bin/sh
+# AuroraOS xrdp session entry - start the same Openbox desktop the live user gets.
+if [ -r /etc/profile ]; then . /etc/profile; fi
+
+# Make sure GTK theme + cursor + icons match the local session
+export GTK_THEME=Aurora
+export XCURSOR_THEME=Adwaita
+export XDG_CURRENT_DESKTOP=Openbox
+export QT_QPA_PLATFORMTHEME=gtk3
+
+# Run openbox with our standard autostart (which feh, tint2, picom, etc.)
+exec openbox-session
+EOF
+  chmod 755 /etc/xrdp/startwm.sh
+
+  # Allow xrdp's color profile + auth integration with PAM
+  if [ -d /etc/polkit-1/localauthority/50-local.d ]; then
+    cat > /etc/polkit-1/localauthority/50-local.d/45-allow-colord.pkla <<EOF
+[Allow Colord all Users]
+Identity=unix-user:*
+Action=org.freedesktop.color-manager.create-device;org.freedesktop.color-manager.create-profile;org.freedesktop.color-manager.delete-device;org.freedesktop.color-manager.delete-profile;org.freedesktop.color-manager.modify-device;org.freedesktop.color-manager.modify-profile
+ResultAny=no
+ResultInactive=no
+ResultActive=yes
+EOF
+  fi
+
+  # Make sure hv_sock kernel module loads at boot
+  mkdir -p /etc/modules-load.d
+  cat > /etc/modules-load.d/aurora-hyperv.conf <<EOF
+# Hyper-V Enhanced Session Mode requires hv_sock + vmbus
+hv_sock
+hv_vmbus
+hv_utils
+EOF
+
+  # Enable the xrdp services
+  systemctl enable xrdp.service xrdp-sesman.service 2>/dev/null || true
+
+  # PAM tweak: allow live-session aurora user without local password prompt
+  if [ -f /etc/pam.d/xrdp-sesman ]; then
+    sed -i '1i# AuroraOS: permit nopassword live aurora user via xrdp\nauth sufficient pam_succeed_if.so user = aurora' /etc/pam.d/xrdp-sesman || true
+  fi
+fi
 
 # --- Default GTK theme + cursor + icons --------------------------------------
 mkdir -p /etc/gtk-3.0

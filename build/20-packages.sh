@@ -119,6 +119,14 @@ DESKTOP=(
   xdg-utils xdg-user-dirs
   # Image viewer
   qimgv
+  # --- v1.1 additions ----------------------------------------------------
+  # Chromium browser pre-installed
+  chromium chromium-l10n
+  # Hyper-V Enhanced Session Mode: xrdp + xorgxrdp talking over hv_sock
+  xrdp xorgxrdp
+  # Hyper-V daemons (KVP, fcopy, vss) -- already pulled in by linux-image-amd64
+  # but explicit for clarity:
+  hyperv-daemons
 )
 
 INSTALLER=(

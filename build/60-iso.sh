@@ -42,7 +42,7 @@ insmod linux || true
 insmod linuxefi || true
 
 menuentry "AuroraOS  -  Live Session" {
-    linux  /live/vmlinuz boot=live components quiet splash plymouth.ignore-serial-consoles console=tty0 console=ttyS0,115200n8
+    linux  /live/vmlinuz boot=live components quiet splash plymouth.ignore-serial-consoles console=tty0 console=ttyS0,115200n8 video=hyperv_fb:1920x1080 video=1920x1080
     initrd /live/initrd.img
 }
 
@@ -52,12 +52,12 @@ menuentry "AuroraOS  -  Live Session  (safe graphics)" {
 }
 
 menuentry "Install AuroraOS to disk" {
-    linux  /live/vmlinuz boot=live components quiet splash aurora.installer=true console=tty0 console=ttyS0,115200n8
+    linux  /live/vmlinuz boot=live components quiet splash aurora.installer=true console=tty0 console=ttyS0,115200n8 video=hyperv_fb:1920x1080 video=1920x1080
     initrd /live/initrd.img
 }
 
 menuentry "AuroraOS  -  Verbose boot (debug)" {
-    linux  /live/vmlinuz boot=live components debug console=tty0 console=ttyS0,115200n8
+    linux  /live/vmlinuz boot=live components debug console=tty0 console=ttyS0,115200n8 video=1920x1080
     initrd /live/initrd.img
 }
 
