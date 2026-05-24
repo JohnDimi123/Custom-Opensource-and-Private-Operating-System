@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=X-GNOME-Metatheme
+Name=Aurora
+Comment=AuroraOS GTK theme - rounded, modern, dark
+Encoding=UTF-8
+
+[X-GNOME-Metatheme]
+GtkTheme=Aurora
+MetacityTheme=Aurora
+IconTheme=Aurora
+CursorTheme=Adwaita
+ButtonLayout=:minimize,maximize,close

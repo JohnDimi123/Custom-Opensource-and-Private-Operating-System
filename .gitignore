@@ -1,0 +1,15 @@
+work/
+out/
+*.iso
+*.iso.sha256
+*.log
+__pycache__/
+*.pyc
+.DS_Store
+
+# These directories are populated at build time by build/assets/generate-assets.sh
+# from the canonical sources under build/assets/.  Don't commit the regenerated copies.
+overlay/usr/share/backgrounds/
+overlay/usr/share/themes/
+overlay/usr/share/icons/
+overlay/usr/share/plymouth/

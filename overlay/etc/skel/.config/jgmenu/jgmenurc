@@ -1,0 +1,55 @@
+# AuroraOS jgmenu configuration - Win11 inspired start menu.
+# Centered above the taskbar; pinned apps row + all apps list.
+
+# --- Geometry (centered, opens above center of taskbar) ----
+position_mode      = pointer
+menu_height_max    = 560
+menu_width         = 460
+menu_padding_top   = 12
+menu_padding_right = 12
+menu_padding_bottom= 12
+menu_padding_left  = 12
+menu_radius        = 14
+menu_border        = 1
+menu_halign        = center
+menu_valign        = bottom
+
+# --- Visual ------------------------------------------------------
+color_menu_bg      = #1c1c22 96
+color_menu_border  = #3a3a45 100
+color_norm_fg      = #ececec 100
+color_norm_bg      = #1c1c22 0
+color_sel_fg       = #ececec 100
+color_sel_bg       = #2e2e38 100
+color_title_fg     = #b8b8be 100
+color_title_bg     = #1c1c22 0
+color_sep_fg       = #3a3a45 60
+
+font               = Inter 10
+font_title         = Inter 11 bold
+
+# --- Items -------------------------------------------------------
+item_padding_x     = 10
+item_padding_y     = 4
+item_height        = 30
+item_radius        = 8
+sep_height         = 6
+
+# --- Icons -------------------------------------------------------
+icon_size          = 22
+icon_theme         = Aurora
+icon_norm_alpha    = 100
+icon_sel_alpha     = 100
+
+# --- Behaviour ---------------------------------------------------
+hide_back_items    = 1
+csv_cmd            = pmenu
+search_arrow_show  = 1
+arrow_string       = ›
+columns            = 1
+tabs               = 120
+
+# --- Search bar --------------------------------------------------
+filter_show        = 1
+search_height      = 32
+filter_align       = top

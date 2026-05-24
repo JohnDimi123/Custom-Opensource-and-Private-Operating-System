@@ -1,0 +1,211 @@
+/*
+ * Aurora GTK 3 theme - AuroraOS original.
+ * Inspired by modern flat dark UIs with soft edges and subtle layering.
+ * No third-party theme assets are bundled or copied.
+ *
+ * Palette:
+ *   --bg            #1c1c22  base window background
+ *   --bg-elevated   #25252d  cards, popovers
+ *   --bg-overlay    #2e2e38  hover/selected
+ *   --fg            #ececec  primary text
+ *   --fg-dim        #b8b8be  secondary text
+ *   --border        #3a3a45
+ *   --accent        #4cc2ff  Aurora cyan (used for selection, focus, switches)
+ *   --accent-fg     #0a0a0e
+ *   --danger        #ff5d6c
+ */
+
+@define-color bg            #1c1c22;
+@define-color bg_elevated   #25252d;
+@define-color bg_overlay    #2e2e38;
+@define-color fg            #ececec;
+@define-color fg_dim        #b8b8be;
+@define-color border_c      #3a3a45;
+@define-color accent        #4cc2ff;
+@define-color accent_fg     #0a0a0e;
+@define-color danger        #ff5d6c;
+
+* {
+  outline: none;
+  -GtkWidget-focus-line-width: 0;
+  -GtkWidget-focus-padding: 0;
+}
+
+window, dialog, .background {
+  background-color: @bg;
+  color: @fg;
+  font-family: "Inter", "DejaVu Sans", sans-serif;
+  font-size: 10pt;
+}
+
+/* ---------- Buttons --------------------------------------------------------*/
+button {
+  background-color: @bg_elevated;
+  color: @fg;
+  border: 1px solid @border_c;
+  border-radius: 8px;
+  padding: 6px 14px;
+  transition: background-color 120ms ease, box-shadow 120ms ease;
+}
+button:hover         { background-color: @bg_overlay; }
+button:active,
+button:checked       { background-color: @accent; color: @accent_fg; }
+button:disabled      { color: @fg_dim; }
+button.suggested-action {
+  background-color: @accent;
+  color: @accent_fg;
+  border-color: transparent;
+}
+button.destructive-action { background-color: @danger; color: white; }
+
+/* ---------- Entry, SpinButton ---------------------------------------------*/
+entry, spinbutton {
+  background-color: @bg_elevated;
+  color: @fg;
+  border: 1px solid @border_c;
+  border-radius: 8px;
+  padding: 6px 10px;
+  caret-color: @accent;
+}
+entry:focus, spinbutton:focus { border-color: @accent; }
+
+/* ---------- Headerbar / titlebar ------------------------------------------*/
+headerbar {
+  background-color: @bg_elevated;
+  color: @fg;
+  border-bottom: 1px solid @border_c;
+  border-radius: 12px 12px 0 0;
+  padding: 4px 8px;
+}
+headerbar button.titlebutton {
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+headerbar button.titlebutton:hover    { background-color: @bg_overlay; }
+headerbar button.titlebutton.close:hover { background-color: @danger; color: white; }
+
+/* ---------- Window decorations (rounded windows via CSD) ------------------*/
+decoration {
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.04),
+    0 12px 30px rgba(0,0,0,0.6);
+}
+decoration:backdrop {
+  box-shadow: 0 8px 18px rgba(0,0,0,0.4);
+}
+
+/* ---------- Lists / treeview ----------------------------------------------*/
+.view, treeview, list, listbox {
+  background-color: @bg;
+  color: @fg;
+}
+list row, listbox row {
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin: 1px 4px;
+}
+list row:selected, listbox row:selected, treeview:selected {
+  background-color: @accent;
+  color: @accent_fg;
+}
+list row:hover, listbox row:hover { background-color: @bg_overlay; }
+
+/* ---------- Switches and checks -------------------------------------------*/
+switch {
+  background-color: @bg_overlay;
+  border-radius: 14px;
+  border: 1px solid @border_c;
+  min-width: 44px;
+  min-height: 22px;
+}
+switch:checked { background-color: @accent; }
+switch slider  { background-color: white; border-radius: 50%; }
+
+check, radio {
+  background-color: @bg_elevated;
+  border: 1px solid @border_c;
+  border-radius: 4px;
+  min-width: 16px;
+  min-height: 16px;
+}
+check:checked, radio:checked {
+  background-color: @accent;
+  border-color: @accent;
+  color: @accent_fg;
+}
+
+/* ---------- Scrollbar ------------------------------------------------------*/
+scrollbar {
+  background: transparent;
+}
+scrollbar slider {
+  background-color: alpha(@fg, 0.20);
+  border-radius: 10px;
+  min-width: 6px;
+  min-height: 30px;
+  margin: 2px;
+}
+scrollbar slider:hover { background-color: alpha(@fg, 0.40); }
+
+/* ---------- Notebook tabs --------------------------------------------------*/
+notebook header {
+  background-color: @bg;
+  border-bottom: 1px solid @border_c;
+}
+notebook header tab {
+  background: transparent;
+  color: @fg_dim;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  padding: 8px 14px;
+}
+notebook header tab:checked {
+  color: @fg;
+  background-color: @bg_elevated;
+  box-shadow: inset 0 -2px 0 0 @accent;
+}
+
+/* ---------- Popovers / menus ----------------------------------------------*/
+popover, .menu, menu {
+  background-color: @bg_elevated;
+  color: @fg;
+  border: 1px solid @border_c;
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+}
+menuitem, .menuitem {
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+menuitem:hover, .menuitem:hover { background-color: @bg_overlay; }
+
+/* ---------- Tooltip --------------------------------------------------------*/
+tooltip {
+  background-color: @bg_elevated;
+  border: 1px solid @border_c;
+  border-radius: 8px;
+  color: @fg;
+  padding: 4px 8px;
+}
+
+/* ---------- Progressbar ----------------------------------------------------*/
+progressbar trough { background-color: @bg_overlay; border-radius: 6px; min-height: 6px; }
+progressbar progress { background-color: @accent; border-radius: 6px; }
+
+/* ---------- Misc accents --------------------------------------------------*/
+.aurora-card {
+  background-color: @bg_elevated;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid @border_c;
+}
+.aurora-section-title {
+  font-weight: bold;
+  font-size: 12pt;
+  margin-bottom: 8px;
+}
+.aurora-accent { color: @accent; }

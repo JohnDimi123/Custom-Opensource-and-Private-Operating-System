@@ -1,0 +1,140 @@
+#---------------------------------------------
+# AuroraOS tint2 configuration
+# Centered, pill-shaped taskbar at the bottom edge - Win11 inspired.
+#---------------------------------------------
+
+#-------------------------------------
+# Backgrounds
+# 1: panel background (dark, rounded)
+# 2: hover for taskbar items
+# 3: active task indicator
+# 4: launcher hover
+#-------------------------------------
+rounded = 14
+border_width = 0
+background_color = #1c1c22 88
+border_color = #ffffff 8
+
+rounded = 8
+border_width = 0
+background_color = #ffffff 18
+border_color = #ffffff 0
+
+rounded = 8
+border_width = 0
+background_color = #4cc2ff 70
+border_color = #4cc2ff 0
+
+rounded = 10
+border_width = 0
+background_color = #ffffff 12
+border_color = #ffffff 0
+
+#-------------------------------------
+# Panel
+#-------------------------------------
+panel_items = LTSC
+panel_size = 100% 52
+panel_margin = 0 0
+panel_padding = 16 4 16
+panel_background_id = 1
+wm_menu = 1
+panel_position = bottom center horizontal
+panel_layer = top
+panel_monitor = primary
+strut_policy = follow_size
+panel_dock = 0
+autohide = 0
+disable_transparency = 0
+mouse_effects = 1
+font_shadow = 0
+
+#-------------------------------------
+# Launcher (Start button + frequent apps)
+#-------------------------------------
+launcher_padding = 4 4 4
+launcher_background_id = 0
+launcher_icon_background_id = 4
+launcher_icon_size = 28
+launcher_icon_asb = 100 0 0
+launcher_icon_theme = Aurora
+launcher_icon_theme_override = 0
+startup_notifications = 1
+launcher_tooltip = 1
+launcher_item_app = aurora-startmenu.desktop
+launcher_item_app = pcmanfm.desktop
+launcher_item_app = chromium.desktop
+launcher_item_app = xfce4-terminal.desktop
+launcher_item_app = aurora-settings.desktop
+
+#-------------------------------------
+# Taskbar (running apps)
+#-------------------------------------
+taskbar_mode = single_desktop
+taskbar_hide_if_empty = 0
+taskbar_padding = 4 0 4
+taskbar_background_id = 0
+taskbar_active_background_id = 3
+taskbar_name = 0
+taskbar_distribute_size = 0
+taskbar_sort_order = none
+
+#-------------------------------------
+# Tasks
+#-------------------------------------
+task_text = 0
+task_icon = 1
+task_centered = 1
+task_maximum_size = 36 36
+task_padding = 4 2 4
+task_tooltip = 1
+task_thumbnail = 0
+task_align = center
+task_font = Inter 9
+task_font_color = #ececec 100
+task_active_font_color = #ececec 100
+task_background_id = 0
+task_active_background_id = 3
+task_urgent_background_id = 3
+task_iconified_background_id = 0
+
+#-------------------------------------
+# System tray
+#-------------------------------------
+systray_padding = 4 0 4
+systray_background_id = 0
+systray_sort = ascending
+systray_icon_size = 18
+systray_icon_asb = 100 0 0
+
+#-------------------------------------
+# Clock (right side)
+#-------------------------------------
+time1_format = %H:%M
+time2_format = %a %b %-d
+time1_font = Inter 10
+time2_font = Inter 8
+time1_font_color = #ececec 100
+time2_font_color = #b8b8be 100
+clock_padding = 8 0
+clock_background_id = 0
+clock_lclick_command = aurora-calendar
+clock_rclick_command = aurora-settings
+
+#-------------------------------------
+# Tooltip
+#-------------------------------------
+tooltip_padding = 4 4
+tooltip_show_timeout = 0.5
+tooltip_hide_timeout = 0.1
+tooltip_background_id = 4
+tooltip_font = Inter 9
+tooltip_font_color = #ececec 100
+
+#-------------------------------------
+# Mouse
+#-------------------------------------
+mouse_middle = none
+mouse_right = close
+mouse_scroll_up = toggle
+mouse_scroll_down = iconify

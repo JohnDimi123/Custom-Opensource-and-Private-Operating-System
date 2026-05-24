@@ -1,0 +1,62 @@
+#!/bin/sh
+# AuroraOS Openbox autostart - launches the Win11-style desktop.
+# v1.2: VM-safe, log everything, no commands that may not be installed.
+
+LOG="${HOME}/.cache/aurora-autostart.log"
+mkdir -p "${HOME}/.cache"
+: > "$LOG"
+
+run() {
+    echo "[$(date +%H:%M:%S)] launching: $*" >> "$LOG"
+    "$@" >> "$LOG" 2>&1 &
+}
+
+# Wait briefly for X to settle
+sleep 0.4
+
+# 1. Wallpaper FIRST.  Note: pcmanfm --desktop is intentionally NOT started
+#    because in v1.0/v1.1 it covered the wallpaper with a black background.
+if [ -f /usr/share/backgrounds/aurora/aurora-default.png ]; then
+    run feh --no-fehbg --bg-fill /usr/share/backgrounds/aurora/aurora-default.png
+fi
+
+# 2. Compositor with VM-safe xrender backend (no GLX -> works on hyperv_drm).
+run picom --config "$HOME/.config/picom.conf" --backend xrender
+
+# 3. Notification daemon
+run dunst
+
+# 4. Centered taskbar
+run tint2 -c "$HOME/.config/tint2/aurora.tint2rc"
+
+# 5. NetworkManager applet -- only if installed
+command -v nm-applet >/dev/null && run nm-applet --indicator
+
+# 6. Polkit auth agent -- whichever happens to be present
+for agent in /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1 \
+             /usr/libexec/polkit-mate-authentication-agent-1 \
+             /usr/lib/x86_64-linux-gnu/polkit-kde-authentication-agent-1 ; do
+    if [ -x "$agent" ]; then run "$agent"; break; fi
+done
+
+# 7. xdg user dirs
+command -v xdg-user-dirs-update >/dev/null && run xdg-user-dirs-update
+
+# 8. First-run welcome
+if [ ! -f "$HOME/.config/aurora/welcome-shown" ] && command -v aurora-welcome >/dev/null; then
+    ( sleep 2 ; aurora-welcome ) &
+fi
+
+# 9. Idle / DPMS settings (harmless in VMs)
+xset s 600 600
+xset dpms 0 0 1200
+
+# 10. Visible "we are alive" indicator: a notification five seconds in.
+( sleep 5
+  if command -v notify-send >/dev/null; then
+    notify-send "AuroraOS" "Welcome.  Click Start at the bottom-left of the taskbar." -t 8000
+  fi
+) &
+
+echo "[$(date +%H:%M:%S)] autostart finished" >> "$LOG"
+exit 0

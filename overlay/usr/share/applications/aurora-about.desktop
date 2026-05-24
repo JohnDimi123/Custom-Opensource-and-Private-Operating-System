@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=About AuroraOS
+Comment=System information and credits
+Exec=aurora-about
+Icon=help-about
+Terminal=false
+Categories=System;
+StartupNotify=true

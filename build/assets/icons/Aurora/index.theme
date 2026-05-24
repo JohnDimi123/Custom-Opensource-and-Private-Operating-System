@@ -1,0 +1,43 @@
+[Icon Theme]
+Name=Aurora
+Comment=AuroraOS icon theme - inherits Adwaita with custom Aurora marks
+Inherits=Adwaita,hicolor
+Example=folder
+
+# Directory list
+Directories=scalable/apps,scalable/places,scalable/devices,scalable/status,scalable/actions
+
+[scalable/apps]
+Size=48
+Type=Scalable
+MinSize=16
+MaxSize=512
+Context=Applications
+
+[scalable/places]
+Size=48
+Type=Scalable
+MinSize=16
+MaxSize=512
+Context=Places
+
+[scalable/devices]
+Size=48
+Type=Scalable
+MinSize=16
+MaxSize=512
+Context=Devices
+
+[scalable/status]
+Size=48
+Type=Scalable
+MinSize=16
+MaxSize=512
+Context=Status
+
+[scalable/actions]
+Size=48
+Type=Scalable
+MinSize=16
+MaxSize=512
+Context=Actions

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AuroraOS logo. Original artwork - four cyan/violet panes forming an
+     abstract cross-quadrant glyph, framed by a soft glow. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <radialGradient id="g1" cx="50%" cy="50%" r="60%">
+      <stop offset="0%"  stop-color="#4cc2ff" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#4cc2ff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#4cc2ff"/>
+      <stop offset="100%" stop-color="#3aa0e0"/>
+    </linearGradient>
+    <linearGradient id="lg2" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#7c5cdc"/>
+      <stop offset="100%" stop-color="#5a3eb8"/>
+    </linearGradient>
+    <linearGradient id="lg3" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#3cc8b4"/>
+      <stop offset="100%" stop-color="#2a8d7e"/>
+    </linearGradient>
+    <linearGradient id="lg4" x1="1" y1="1" x2="0" y2="0">
+      <stop offset="0%"   stop-color="#4cc2ff"/>
+      <stop offset="100%" stop-color="#2a78b0"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="60" fill="url(#g1)"/>
+  <g transform="translate(64 64)">
+    <rect x="-44" y="-44" width="40" height="40" rx="6" fill="url(#lg1)"/>
+    <rect x="4"   y="-44" width="40" height="40" rx="6" fill="url(#lg2)"/>
+    <rect x="-44" y="4"   width="40" height="40" rx="6" fill="url(#lg3)"/>
+    <rect x="4"   y="4"   width="40" height="40" rx="6" fill="url(#lg4)"/>
+  </g>
+</svg>
