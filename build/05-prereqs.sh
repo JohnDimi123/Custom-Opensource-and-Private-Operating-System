@@ -20,18 +20,31 @@ if ! command -v debootstrap >/dev/null 2>&1; then
   log "Installing debootstrap from upstream Debian package"
   TMPD=$(mktemp -d)
   cd "$TMPD"
-  wget -q "http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.128+nmu2+deb12u3_all.deb" -O debootstrap.deb \
-    || wget -q "http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.128+nmu2+deb12u4_all.deb" -O debootstrap.deb \
-    || die "Could not download debootstrap"
+  # Pick the latest deb12u* point release of debootstrap currently in pool
+  DEB_NAME=$(curl -s "http://ftp.debian.org/debian/pool/main/d/debootstrap/" \
+    | grep -oE 'debootstrap_1\.0\.[0-9]+(\+nmu[0-9]+)?(\+deb12u[0-9]+)?_all\.deb' \
+    | sort -V | tail -1)
+  if [ -z "$DEB_NAME" ]; then
+    DEB_NAME="debootstrap_1.0.143_all.deb"
+  fi
+  wget -q "http://ftp.debian.org/debian/pool/main/d/debootstrap/$DEB_NAME" -O debootstrap.deb \
+    || die "Could not download debootstrap ($DEB_NAME)"
   ar x debootstrap.deb
   mkdir -p extracted && tar -C extracted -xf data.tar.*
   cp -r extracted/usr/share/debootstrap /usr/share/
   install -m755 extracted/usr/sbin/debootstrap /usr/sbin/debootstrap
-  install -m755 extracted/usr/share/debootstrap/debootstrap /usr/share/debootstrap/debootstrap
   cd /
   rm -rf "$TMPD"
 fi
 need_cmd debootstrap
+
+# Install Python Pillow for asset generation (wallpapers, plymouth)
+if ! python3 -c "import PIL" 2>/dev/null; then
+  log "Installing Python Pillow for asset generation"
+  pip install --quiet --break-system-packages Pillow 2>/dev/null \
+    || pip3 install --quiet --break-system-packages Pillow 2>/dev/null \
+    || warn "Pillow install failed; wallpaper/plymouth generation will be skipped"
+fi
 
 # Required for chroot
 [ -d /proc ] || die "no /proc"

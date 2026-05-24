@@ -44,6 +44,7 @@ cat > "$ISO_STAGE_DIR/.disk/info" <<EOF
 ${AURORA_NAME} ${AURORA_VERSION} "${AURORA_CODENAME}" - amd64 ($(date -u +%Y-%m-%d))
 EOF
 echo "full_cd/single" > "$ISO_STAGE_DIR/.disk/cd_type"
+echo "AuroraOS ${AURORA_VERSION}" > "$ISO_STAGE_DIR/.disk/aurora_iso_marker"
 
 log "Stage size: $(du -sh "$ISO_STAGE_DIR" | cut -f1)"
 log "Squashfs:   $(du -h "$ISO_STAGE_DIR/live/filesystem.squashfs" | cut -f1)"

@@ -15,12 +15,17 @@ cat > "$ISO_STAGE_DIR/boot/grub/grub.cfg" <<EOF
 set default=0
 set timeout=5
 
+# Serial console: lets the test pipeline (and headless servers) see boot output.
+serial --unit=0 --speed=115200
+terminal_input  --append serial
+terminal_output --append serial
+
 # Try graphical menu first; fall back gracefully if FB unavailable
 if loadfont /boot/grub/fonts/unicode.pf2 ; then
   insmod all_video
   insmod gfxterm
   set gfxmode=auto
-  terminal_output gfxterm
+  terminal_output --append gfxterm
 fi
 
 set color_normal=white/black
@@ -29,22 +34,22 @@ set menu_color_normal=white/black
 set menu_color_highlight=black/light-cyan
 
 menuentry "AuroraOS  -  Live Session" {
-    linux  /live/vmlinuz boot=live components quiet splash plymouth.ignore-serial-consoles
+    linux  /live/vmlinuz boot=live components quiet splash plymouth.ignore-serial-consoles console=tty0 console=ttyS0,115200n8
     initrd /live/initrd.img
 }
 
 menuentry "AuroraOS  -  Live Session  (safe graphics)" {
-    linux  /live/vmlinuz boot=live components nomodeset vga=normal
+    linux  /live/vmlinuz boot=live components nomodeset vga=normal console=tty0 console=ttyS0,115200n8
     initrd /live/initrd.img
 }
 
 menuentry "Install AuroraOS to disk" {
-    linux  /live/vmlinuz boot=live components quiet splash aurora.installer=true
+    linux  /live/vmlinuz boot=live components quiet splash aurora.installer=true console=tty0 console=ttyS0,115200n8
     initrd /live/initrd.img
 }
 
 menuentry "AuroraOS  -  Verbose boot (debug)" {
-    linux  /live/vmlinuz boot=live components debug
+    linux  /live/vmlinuz boot=live components debug console=tty0 console=ttyS0,115200n8
     initrd /live/initrd.img
 }
 
@@ -55,7 +60,55 @@ EOF
 # --- Build standalone UEFI loader -------------------------------------------
 # The grub-embed.cfg only finds the real grub.cfg on the iso9660 filesystem.
 cat > "$WORK_DIR/grub-embed.cfg" <<'EOF'
-search --no-floppy --set=root --file /.disk/info
+# Robust standalone GRUB EFI bootstrap. We try several strategies because
+# different UEFI firmwares (OVMF, Hyper-V, real hardware) expose the CD
+# differently.
+insmod part_gpt
+insmod part_msdos
+insmod iso9660
+insmod fat
+insmod search
+insmod search_label
+insmod search_fs_file
+insmod search_fs_uuid
+insmod normal
+insmod configfile
+
+# Try them in order. The first one that succeeds wins.
+set _aurora_found=0
+
+# 1. Volume label (xorriso writes 'AURORA_1_0').
+search --no-floppy --label AURORA_1_0 --set=_root
+if [ -n "$_root" ]; then set root=$_root; set _aurora_found=1; fi
+
+# 2. Marker file path.
+if [ "$_aurora_found" = "0" ]; then
+  search --no-floppy --file /.disk/aurora_iso_marker --set=_root
+  if [ -n "$_root" ]; then set root=$_root; set _aurora_found=1; fi
+fi
+
+# 3. /.disk/info (Debian-style)
+if [ "$_aurora_found" = "0" ]; then
+  search --no-floppy --file /.disk/info --set=_root
+  if [ -n "$_root" ]; then set root=$_root; set _aurora_found=1; fi
+fi
+
+# 4. Iterate explicitly: cd0, hd0, hd1, hd2 ...
+if [ "$_aurora_found" = "0" ]; then
+  for dev in cd0 cd1 cd2 hd0 hd1 hd2 hd3 hd4 ; do
+    if [ -e "($dev)/.disk/aurora_iso_marker" ]; then
+      set root=$dev
+      set _aurora_found=1
+      break
+    fi
+  done
+fi
+
+# 5. Last resort: the directory the EFI binary itself loaded from.
+if [ "$_aurora_found" = "0" ]; then
+  set root=$cmdpath
+fi
+
 set prefix=($root)/boot/grub
 configfile $prefix/grub.cfg
 EOF
