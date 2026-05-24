@@ -33,6 +33,14 @@ set color_highlight=black/light-cyan
 set menu_color_normal=white/black
 set menu_color_highlight=black/light-cyan
 
+# Hyper-V's UEFI firmware triggers GRUB's "linuxefi" codepath, which on some
+# GRUB builds (Debian/Ubuntu 2.06) tries to dynamically load linuxefi.mod even
+# when the menuentry uses "linux".  Insmodding it up-front (with || true so it's
+# a no-op on builds that have unified linux+linuxefi) avoids the chained error
+# "linuxefi.mod not found"  ->  "you need to load the kernel first".
+insmod linux || true
+insmod linuxefi || true
+
 menuentry "AuroraOS  -  Live Session" {
     linux  /live/vmlinuz boot=live components quiet splash plymouth.ignore-serial-consoles console=tty0 console=ttyS0,115200n8
     initrd /live/initrd.img
@@ -113,7 +121,7 @@ set prefix=($root)/boot/grub
 configfile $prefix/grub.cfg
 EOF
 
-GRUB_MODULES="part_gpt part_msdos fat iso9660 normal configfile search search_label search_fs_uuid search_fs_file linux echo all_video gfxterm gfxterm_background gfxmenu boot loadenv test true help serial terminal sleep halt reboot ls cat password password_pbkdf2 ext2 udf squash4 png jpeg gzio xzio lzopio video_bochs video_cirrus efi_gop efi_uga"
+GRUB_MODULES="part_gpt part_msdos fat iso9660 normal configfile search search_label search_fs_uuid search_fs_file linux linuxefi echo all_video gfxterm gfxterm_background gfxmenu boot loadenv test true help serial terminal sleep halt reboot ls cat password password_pbkdf2 ext2 udf squash4 png jpeg gzio xzio lzopio video_bochs video_cirrus efi_gop efi_uga chain"
 
 log "Building x86_64-efi GRUB image (BOOTX64.EFI)"
 grub2-mkstandalone \
@@ -129,6 +137,28 @@ mkdir -p "$ISO_STAGE_DIR/boot/grub/fonts"
 if [ -f /usr/share/grub/unicode.pf2 ]; then
   cp /usr/share/grub/unicode.pf2 "$ISO_STAGE_DIR/boot/grub/fonts/unicode.pf2"
 fi
+
+# --- Stage GRUB module directories on the ISO -------------------------------
+# Some UEFI firmwares (notably Hyper-V) cause GRUB's linux command to
+# dynamically load extra .mod files at runtime even when the modules are also
+# embedded in the standalone EFI binary.  Make sure those .mod files are also
+# present at the path GRUB looks for them: ($root)/boot/grub/<arch>/.
+log "Staging GRUB module directories on the ISO"
+for arch in x86_64-efi i386-pc; do
+  src=""
+  for cand in /usr/lib/grub/$arch /usr/share/grub2/$arch /usr/lib/grub2/$arch; do
+    [ -d "$cand" ] && src="$cand" && break
+  done
+  if [ -n "$src" ]; then
+    mkdir -p "$ISO_STAGE_DIR/boot/grub/$arch"
+    cp -a "$src"/*.mod "$ISO_STAGE_DIR/boot/grub/$arch/" 2>/dev/null || true
+    cp -a "$src"/*.lst "$ISO_STAGE_DIR/boot/grub/$arch/" 2>/dev/null || true
+    cp -a "$src"/efiemu*.o "$ISO_STAGE_DIR/boot/grub/$arch/" 2>/dev/null || true
+    log "  staged $arch from $src"
+  else
+    warn "  no module dir for $arch"
+  fi
+done
 
 # --- Build BIOS (i386-pc) loader for legacy fallback ------------------------
 log "Building i386-pc GRUB image (eltorito.img) for legacy BIOS fallback"
