@@ -1,0 +1,13 @@
+[Unit]
+Description=JARVIS Runtime Preparation
+After=local-fs.target
+Before=jarvis-core.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/install -d -m 0750 -o operator -g operator /var/lib/jarvis /var/lib/jarvis/captures /var/log/jarvis
+ExecStart=/usr/bin/install -d -m 0750 -o operator -g operator /run/jarvis
+
+[Install]
+WantedBy=multi-user.target

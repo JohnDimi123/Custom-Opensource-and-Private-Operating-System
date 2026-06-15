@@ -1,0 +1,161 @@
+/* jarvis-ui/renderer/hud.css — holographic Iron-Man HUD.
+   Design language: deep navy-black void, cyan/amber holographic light,
+   thin engineered rules, monospace telemetry, one signature element:
+   the breathing arc reactor that drives every state change. */
+
+:root{
+  --void:#03060c;
+  --void-2:#060b16;
+  --cyan:#37e6ff;
+  --cyan-dim:#1b8ba8;
+  --amber:#ffb53b;
+  --red:#ff4d5e;
+  --green:#56ffae;
+  --ink:#bfe9f4;
+  --ink-dim:#5d7d8a;
+  --line:rgba(55,230,255,.18);
+  --glow:0 0 18px rgba(55,230,255,.55);
+  --mono:"JetBrains Mono","DejaVu Sans Mono",monospace;
+  --disp:"Orbitron","DejaVu Sans",sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:radial-gradient(120% 90% at 50% 40%,var(--void-2),var(--void) 70%);
+  color:var(--ink);
+  font-family:var(--mono);
+  overflow:hidden;
+  display:grid;
+  grid-template-columns:260px 1fr 260px;
+  grid-template-rows:64px 1fr 96px;
+  grid-template-areas:
+    "top top top"
+    "left core right"
+    "bottom bottom bottom";
+  gap:14px;
+  padding:18px;
+  user-select:none;
+}
+
+/* ambient layers */
+#scanlines{position:fixed;inset:0;pointer-events:none;z-index:50;
+  background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.18) 3px 4px);
+  mix-blend-mode:multiply;opacity:.5}
+#grid{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.25;
+  background:
+    linear-gradient(var(--line) 1px,transparent 1px) 0 0/48px 48px,
+    linear-gradient(90deg,var(--line) 1px,transparent 1px) 0 0/48px 48px;
+  mask:radial-gradient(70% 70% at 50% 45%,#000 30%,transparent 80%)}
+
+/* ---------- top bar ---------- */
+.bar{display:flex;align-items:center;z-index:2}
+.bar--top{grid-area:top;justify-content:space-between;
+  border-bottom:1px solid var(--line);padding-bottom:8px}
+.brand__mark{font-family:var(--disp);letter-spacing:.42em;font-size:20px;
+  color:var(--cyan);text-shadow:var(--glow)}
+.brand__sub{display:block;font-size:9px;letter-spacing:.32em;color:var(--ink-dim);margin-top:3px}
+.clock{font-family:var(--disp);font-size:24px;letter-spacing:.18em;color:var(--ink)}
+.conn{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.2em;color:var(--ink-dim)}
+.dot{width:9px;height:9px;border-radius:50%}
+.dot--off{background:var(--red);box-shadow:0 0 10px var(--red)}
+.dot--on{background:var(--green);box-shadow:0 0 10px var(--green)}
+
+/* ---------- side panels ---------- */
+.panel{z-index:2;border:1px solid var(--line);border-radius:4px;
+  padding:16px 14px;background:linear-gradient(180deg,rgba(8,18,30,.55),rgba(4,8,14,.25));
+  backdrop-filter:blur(2px);overflow:hidden}
+.panel--left{grid-area:left}
+.panel--right{grid-area:right}
+.panel__title{font-size:10px;letter-spacing:.34em;color:var(--cyan-dim);
+  margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.panel__title--mt{margin-top:22px}
+
+.gauge{margin-bottom:16px}
+.gauge label{font-size:9px;letter-spacing:.26em;color:var(--ink-dim);display:block;margin-bottom:6px}
+.meter{height:7px;background:rgba(55,230,255,.08);border:1px solid var(--line);
+  border-radius:3px;overflow:hidden;position:relative}
+.meter i{display:block;height:100%;width:0;
+  background:linear-gradient(90deg,var(--cyan-dim),var(--cyan));
+  box-shadow:var(--glow);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.gauge span{float:right;font-size:11px;color:var(--cyan);margin-top:-16px}
+
+.readout{list-style:none;font-size:11px;letter-spacing:.12em;line-height:2.1;color:var(--ink-dim)}
+.readout b{float:right;color:var(--ink)}
+
+/* ---------- arc reactor core ---------- */
+.core{grid-area:core;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;z-index:2;gap:26px}
+.reactor{position:relative;width:300px;height:300px;display:grid;place-items:center}
+.reactor__ring{position:absolute;border-radius:50%;border:1px solid var(--cyan-dim)}
+.reactor__ring--outer{width:300px;height:300px;border-style:dashed;
+  border-color:var(--cyan-dim);animation:spin 24s linear infinite;opacity:.55}
+.reactor__ring--mid{width:220px;height:220px;border-width:2px;border-color:var(--cyan);
+  box-shadow:var(--glow),inset 0 0 24px rgba(55,230,255,.25);
+  animation:spin 16s linear infinite reverse}
+.reactor__ring--inner{width:150px;height:150px;border-color:var(--cyan-dim);
+  border-top-color:var(--cyan);animation:spin 8s linear infinite}
+.reactor__core{width:96px;height:96px;border-radius:50%;
+  background:radial-gradient(circle at 50% 45%,#eafcff,var(--cyan) 45%,var(--cyan-dim) 80%);
+  box-shadow:0 0 40px 8px rgba(55,230,255,.7),inset 0 0 30px rgba(255,255,255,.6);
+  animation:breathe 3.4s ease-in-out infinite}
+.reactor__wave{position:absolute;width:150px;height:46px;opacity:.0;transition:opacity .3s}
+.reactor__wave polyline{fill:none;stroke:#eafcff;stroke-width:1.6;
+  filter:drop-shadow(0 0 4px var(--cyan))}
+
+/* state-driven color theming on the reactor */
+body[data-state="listening"] .reactor__core{animation:breathe 1.2s ease-in-out infinite;
+  background:radial-gradient(circle at 50% 45%,#fff,var(--green) 45%,#1e7d57 80%);
+  box-shadow:0 0 50px 10px rgba(86,255,174,.8),inset 0 0 30px #fff}
+body[data-state="listening"] .reactor__wave{opacity:1}
+body[data-state="thinking"] .reactor__ring--mid{animation:spin 3s linear infinite}
+body[data-state="thinking"] .reactor__core{
+  background:radial-gradient(circle at 50% 45%,#fff,var(--amber) 45%,#a06a14 80%);
+  box-shadow:0 0 50px 10px rgba(255,181,59,.8),inset 0 0 30px #fff}
+body[data-state="speaking"] .reactor__core{animation:breathe .9s ease-in-out infinite}
+body[data-state="speaking"] .reactor__wave{opacity:1}
+
+.state{font-family:var(--disp);font-size:18px;letter-spacing:.5em;color:var(--cyan);
+  text-shadow:var(--glow);text-indent:.5em}
+.hint{font-size:11px;letter-spacing:.24em;color:var(--ink-dim)}
+
+/* ---------- notifications + plugins ---------- */
+.notes{list-style:none;display:flex;flex-direction:column;gap:8px}
+.notes li{font-size:10px;letter-spacing:.08em;color:var(--ink);
+  border-left:2px solid var(--cyan);padding:6px 8px;
+  background:rgba(55,230,255,.06);animation:slideIn .4s ease}
+.notes li time{display:block;color:var(--ink-dim);font-size:9px;margin-top:2px}
+
+.plugins{list-style:none;display:flex;flex-direction:column;gap:6px}
+.plugins li{display:flex;justify-content:space-between;align-items:center;
+  font-size:10px;letter-spacing:.1em;padding:6px 8px;border:1px solid var(--line);border-radius:3px}
+.plugins button{font-family:var(--mono);font-size:9px;letter-spacing:.14em;
+  background:transparent;border:1px solid var(--cyan-dim);color:var(--cyan);
+  padding:3px 8px;border-radius:3px;cursor:pointer}
+.plugins button.on{background:var(--cyan);color:var(--void);box-shadow:var(--glow)}
+
+/* ---------- bottom bar ---------- */
+.bar--bottom{grid-area:bottom;gap:16px;border-top:1px solid var(--line);padding-top:10px}
+.mic{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.2em;
+  color:var(--ink-dim);min-width:120px}
+.mic__icon{font-size:18px;color:var(--ink-dim);transition:all .25s}
+body[data-state="listening"] .mic__icon{color:var(--green);text-shadow:0 0 12px var(--green);
+  animation:pulse 1s ease-in-out infinite}
+.transcript{flex:1;font-size:13px;letter-spacing:.04em;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.transcript .you{color:var(--cyan)}
+.transcript .jarvis{color:var(--amber)}
+.textInput{width:280px;background:rgba(55,230,255,.05);border:1px solid var(--line);
+  color:var(--ink);font-family:var(--mono);font-size:12px;letter-spacing:.08em;
+  padding:10px 12px;border-radius:4px;outline:none}
+.textInput:focus{border-color:var(--cyan);box-shadow:var(--glow)}
+
+/* ---------- animations ---------- */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes breathe{0%,100%{transform:scale(1);opacity:.95}50%{transform:scale(1.06);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
+
+@media (prefers-reduced-motion: reduce){
+  .reactor__ring,.reactor__core,.mic__icon{animation:none!important}
+}

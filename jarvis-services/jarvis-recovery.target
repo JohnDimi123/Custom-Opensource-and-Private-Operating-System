@@ -1,0 +1,5 @@
+[Unit]
+Description=JARVIS Recovery Mode (root shell, no UI)
+Requires=sysinit.target
+After=sysinit.target
+AllowIsolate=yes

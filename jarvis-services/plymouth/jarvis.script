@@ -1,0 +1,33 @@
+# /usr/share/plymouth/themes/jarvis/jarvis.script
+# Custom JARVIS boot splash: arc-reactor pulse on black.
+
+Window.SetBackgroundTopColor(0.012, 0.024, 0.047);
+Window.SetBackgroundBottomColor(0.0, 0.0, 0.0);
+
+logo.image = Image("reactor.png");
+logo.sprite = Sprite(logo.image);
+logo.sprite.SetX(Window.GetWidth()  / 2 - logo.image.GetWidth()  / 2);
+logo.sprite.SetY(Window.GetHeight() / 2 - logo.image.GetHeight() / 2);
+
+# Pulsing opacity to mimic the reactor breathing.
+progress = 0;
+fun refresh_callback() {
+    progress++;
+    opacity = 0.55 + 0.45 * Math.Sin(progress / 18);
+    logo.sprite.SetOpacity(opacity);
+}
+Plymouth.SetRefreshFunction(refresh_callback);
+
+# Boot status text under the reactor.
+msg.image = Image.Text("J.A.R.V.I.S  initialising…", 0.22, 0.78, 0.86);
+msg.sprite = Sprite(msg.image);
+msg.sprite.SetX(Window.GetWidth() / 2 - msg.image.GetWidth() / 2);
+msg.sprite.SetY(Window.GetHeight() / 2 + logo.image.GetHeight() / 2 + 30);
+
+fun message_callback(text) {
+    my.image = Image.Text(text, 0.36, 0.49, 0.54);
+    my.sprite = Sprite(my.image);
+    my.sprite.SetX(Window.GetWidth() / 2 - my.image.GetWidth() / 2);
+    my.sprite.SetY(Window.GetHeight() - 60);
+}
+Plymouth.SetMessageFunction(message_callback);

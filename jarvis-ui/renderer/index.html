@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JARVIS</title>
+  <link rel="stylesheet" href="hud.css" />
+</head>
+<body>
+  <div id="scanlines"></div>
+  <div id="grid"></div>
+
+  <!-- top status bar -->
+  <header class="bar bar--top">
+    <div class="brand">
+      <span class="brand__mark">J.A.R.V.I.S</span>
+      <span class="brand__sub">Just A Rather Very Intelligent System</span>
+    </div>
+    <div class="clock" id="clock">--:--:--</div>
+    <div class="conn" id="conn"><span class="dot dot--off"></span><span id="connTxt">linking core</span></div>
+  </header>
+
+  <!-- left column: system telemetry -->
+  <aside class="panel panel--left">
+    <h2 class="panel__title">SYSTEM TELEMETRY</h2>
+    <div class="gauge"><label>CPU LOAD</label><div class="meter"><i id="cpuBar"></i></div><span id="cpuVal">0%</span></div>
+    <div class="gauge"><label>MEMORY</label><div class="meter"><i id="memBar"></i></div><span id="memVal">0%</span></div>
+    <ul class="readout">
+      <li>UPTIME <b id="uptime">—</b></li>
+      <li>PROCESSES <b id="procs">—</b></li>
+      <li>NET ↑ <b id="netUp">0</b> MB</li>
+      <li>NET ↓ <b id="netDown">0</b> MB</li>
+    </ul>
+  </aside>
+
+  <!-- center: arc reactor + state -->
+  <main class="core">
+    <div class="reactor" id="reactor">
+      <div class="reactor__ring reactor__ring--outer"></div>
+      <div class="reactor__ring reactor__ring--mid"></div>
+      <div class="reactor__ring reactor__ring--inner"></div>
+      <div class="reactor__core"></div>
+      <svg class="reactor__wave" id="wave" viewBox="0 0 200 60" preserveAspectRatio="none">
+        <polyline id="wavePath" points="" />
+      </svg>
+    </div>
+    <div class="state" id="state">STANDBY</div>
+    <div class="hint" id="hint">Say “Jarvis” to wake me</div>
+  </main>
+
+  <!-- right column: notifications + plugins -->
+  <aside class="panel panel--right">
+    <h2 class="panel__title">NOTIFICATIONS</h2>
+    <ul class="notes" id="notes"></ul>
+    <h2 class="panel__title panel__title--mt">PLUGINS</h2>
+    <ul class="plugins" id="plugins"></ul>
+  </aside>
+
+  <!-- bottom: transcript + mic + input -->
+  <footer class="bar bar--bottom">
+    <div class="mic" id="mic"><span class="mic__icon">◉</span><span id="micTxt">idle</span></div>
+    <div class="transcript" id="transcript"></div>
+    <input id="textInput" class="textInput" placeholder="type a command…" autocomplete="off" />
+  </footer>
+
+  <script src="hud.js"></script>
+</body>
+</html>

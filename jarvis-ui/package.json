@@ -1,0 +1,12 @@
+{
+  "name": "jarvis-ui",
+  "version": "1.0.0",
+  "description": "JARVIS OS Iron-Man HUD shell",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron --no-sandbox ."
+  },
+  "dependencies": {
+    "electron": "^31.0.0"
+  }
+}

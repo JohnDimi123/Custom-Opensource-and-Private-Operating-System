@@ -1,0 +1,24 @@
+[Unit]
+Description=JARVIS UI (fullscreen HUD kiosk)
+After=jarvis-core.service systemd-user-sessions.service
+Wants=jarvis-core.service
+Conflicts=getty@tty1.service
+After=getty@tty1.service
+
+[Service]
+Type=simple
+User=operator
+PAMName=login
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+StandardInput=tty
+StandardOutput=journal
+Environment=HOME=/home/operator
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+ExecStart=/usr/bin/startx /etc/jarvis/xinitrc -- :0 vt1 -nolisten tcp
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=graphical.target

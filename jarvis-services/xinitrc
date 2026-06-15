@@ -1,0 +1,16 @@
+#!/bin/sh
+# /etc/jarvis/xinitrc — minimal X session: no WM chrome, just the HUD.
+xset -dpms        # never blank the display
+xset s off        # disable screensaver
+xset s noblank
+
+# Black root window so there is no flash before the HUD paints.
+xsetroot -solid "#03060c"
+
+# Hide the cursor when idle (kiosk feel).
+command -v unclutter >/dev/null 2>&1 && unclutter -idle 2 &
+
+# Launch the Iron-Man HUD fullscreen. --no-sandbox is required because we run
+# Electron as a non-root kiosk user inside a minimal live system.
+cd /opt/jarvis/ui || exit 1
+exec /opt/jarvis/ui/node_modules/.bin/electron --no-sandbox --disable-gpu .
